@@ -64,7 +64,8 @@ def run_tool(opts):
             "Invalid input path found.")
         args.extend(files)
 
-    if not opts.no_save_path:
+    want_output = opts.std_error or opts.redirect
+    if (not opts.no_save_path) or want_output:
         # NOTE: the handling of 'opts.save_path' is nested under
         # 'opts.no_save_path' to avoid creating unnecessary temporary files
         if opts.save_path:
@@ -74,7 +75,8 @@ def run_tool(opts):
             # '--save' option was NOT used. Create a temporary file
             file_descriptor, save_loc = tempfile.mkstemp()
             os.close(file_descriptor)
-        args.append(save_loc)
+        if not opts.no_save_path:
+            args.append(save_loc)
 
     stderr = None
     if opts.std_error:
@@ -83,15 +85,20 @@ def run_tool(opts):
     logger.debug(
         "About to run the command below\n==>{}<==".format(' '.join(args)))
     try:
-        if opts.no_save_path:
+        if opts.no_save_path and (not want_output):
             return subprocess.check_call(args, timeout=TIMEOUT)
         else:
-            output = subprocess.check_output(args, stderr=stderr,
-                                             timeout=TIMEOUT)
+            output = subprocess.check_output(args,
+                stderr=stderr,
+                timeout=TIMEOUT,
+                )
             if opts.redirect:
                 _write_file(save_loc, output)
             return save_loc
     except (subprocess.CalledProcessError, OSError) as err:
+        if opts.redirect:
+            _write_file(save_loc, err.output)
+            err.message = save_loc
         logger.error(err)
         raise
 

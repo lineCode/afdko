@@ -1,0 +1,4 @@
+makeotfexe [WARNING] Font Menu Name database is not specified or not found .[SourceSans-Test]
+makeotfexe [WARNING] <SourceSans-Test> cmap{plat=1,script=0,lang=0}: empty encoding
+makeotfexe [WARNING] <SourceSans-Test> cmap{plat=3,script=1,lang=0}: empty encoding
+makeotfexe [FATAL] <SourceSans-Test> Cursive Attach lookup subtable in GPOS feature 'curs' causes offset overflow.
