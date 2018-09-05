@@ -124,3 +124,48 @@ def test_DFLT_script_with_any_lang_bug438():
                    '    <created value=' + SPLIT_MARKER +
                    '    <modified value=',
                    '-r', r'^\s+Version.*;hotconv.*;makeotfexe'])
+
+
+@pytest.mark.parametrize('feat_name, error_msg', [
+    ('test_named_lookup',
+        b"[FATAL] <SourceSans-Test> GPOS feature 'last' causes overflow of "
+        b"offset to a subtable (0x100010020)"),
+    ('test_singlepos_subtable_overflow',
+        b"[FATAL] <SourceSans-Test> GPOS feature 'sps1' causes overflow of "
+        b"offset to a subtable (0x100010188)"),
+    ('test_class_pair_subtable_overflow',
+        b"[FATAL] <SourceSans-Test> GPOS feature 'last' causes overflow of "
+        b"offset to a subtable (0x100010020)"),
+    ('test_class_pair_class_def_overflow',
+        b"[FATAL] <SourceSans-Test> ClassDef offset overflow (0x1001a) in "
+        b"pair positioning"),
+    ('test_contextual_overflow',
+        b"[FATAL] <SourceSans-Test> Chain contextual lookup subtable in "
+        b"GPOS feature 'krn0' causes offset overflow."),
+    ('test_cursive_subtable_overflow',
+        b"[FATAL] <SourceSans-Test> Cursive Attach lookup subtable in "
+        b"GPOS feature 'curs' causes offset overflow."),
+    ('test_mark_to_base_coverage_overflow',
+        b"[FATAL] <SourceSans-Test> base coverage offset overflow "
+        b"(0x1002c) in MarkToBase positioning"),
+    ('test_mark_to_base_subtable_overflow',
+        b"[FATAL] <SourceSans-Test> MarkToBase lookup subtable in GPOS "
+        b"feature 'mrk1' causes offset overflow."),
+    ('test_mark_to_ligature_subtable_overflow',
+        b"[FATAL] <SourceSans-Test> ligature coverage offset overflow "
+        b"(0x1007a) in MarkToLigature positioning"),
+])
+def test_oveflow_report_bug313(feat_name, error_msg):
+    input_filename = 'bug313/font.pfa'
+    feat_filename = 'bug313/{}.fea'.format(feat_name)
+    otf_path = _get_temp_file_path()
+
+    stderr_path = runner(
+        CMD + ['-s', '-e', '-o', 'shw',
+               'f', '_{}'.format(_get_input_path(input_filename)),
+               'ff', '_{}'.format(_get_input_path(feat_filename)),
+               'o', '_{}'.format(otf_path)])
+
+    with open(stderr_path, 'rb') as f:
+        output = f.read()
+    assert error_msg in output
